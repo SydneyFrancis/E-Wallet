@@ -26,6 +26,7 @@ public class TransactionEntity {
 
     private int amount;
 
+    @Enumerated(EnumType.STRING)
     private TransactionStatus transactionStatus;
 
     private String transactionTime;

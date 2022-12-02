@@ -39,6 +39,7 @@ public class WalletService {
         String toUser = (String) walletRequest.get("toUser");
         int transactionAmount = (Integer) walletRequest.get("amount");
 
+
         String transactionID = (String) walletRequest.get("transactionID");
 
         WalletEntity sendersWallet = walletRepository.findByUserName(fromUser);
@@ -54,7 +55,7 @@ public class WalletService {
             transactionReq.put("transactionID", transactionID);
             transactionReq.put("TransactionStatus", "SUCCESS");
             String sendMessage = transactionReq.toString();
-            kafkaTemplate.send("update_wallet",sendMessage);
+            kafkaTemplate.send("response_wallet",sendMessage);
 
 
         } else {
@@ -63,7 +64,7 @@ public class WalletService {
             transactionReq.put("transactionID", transactionID);
             transactionReq.put("TransactionStatus", "FAILED");
             String sendMessage = transactionReq.toString();
-            kafkaTemplate.send("update_wallet",sendMessage);
+            kafkaTemplate.send("response_wallet",sendMessage);
 
 
         }

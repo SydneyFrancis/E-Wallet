@@ -15,7 +15,7 @@ import java.util.Properties;
 @Configuration
 public class TransactionConfig {
     @Bean
-    Properties kafkProperties(){
+    Properties kafkaProperties(){
         Properties properties = new Properties();
 
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -31,7 +31,7 @@ public class TransactionConfig {
 
     @Bean
     ConsumerFactory<String,String> getConsumerFactory(){
-        return new DefaultKafkaConsumerFactory(kafkProperties());
+        return new DefaultKafkaConsumerFactory(kafkaProperties());
     }
 
     @Bean
@@ -42,7 +42,7 @@ public class TransactionConfig {
     }
     @Bean
     ProducerFactory<String,String> getProducerFactory(){
-        return new DefaultKafkaProducerFactory(kafkProperties());
+        return new DefaultKafkaProducerFactory(kafkaProperties());
     }
 
     @Bean

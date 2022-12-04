@@ -46,6 +46,11 @@ public class UserService {
         kafkaTemplate.send(CREATE_WALLET_TOPIC,message);
     }
 
+    public String getEmail(String userName){
+        UserEntity user = userRepository.findByUserName(userName);
+        return user.getEmail();
+    }
+
     private void saveInCache(UserEntity user){
 
         Map map = objectMapper.convertValue(user,Map.class);

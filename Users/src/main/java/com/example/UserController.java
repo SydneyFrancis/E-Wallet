@@ -15,6 +15,11 @@ public class UserController {
         userService.createUser(userRequestDto);
     }
 
+    @GetMapping("/getEmail")
+    public String getEmail(@RequestParam("email") String user){
+        return userService.getEmail(user);
+    }
+
     @GetMapping("/getUser")
     public UserEntity getUserByName(@RequestParam("username")String UserName) throws UserNotFoundException {
        return userService.getUser(UserName);

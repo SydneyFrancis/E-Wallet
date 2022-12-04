@@ -71,54 +71,57 @@ public class TransactionService {
 
         transactionRepository.save(t);
 
-        notificationService(t);
+        callNotificationService(t);
 
     }
 
-    public void notificationService(TransactionEntity transactionEntity){
+    private void callNotificationService(TransactionEntity transaction) {
+        // FETCH EMAIL FROM USER SERVICE
 
-        String fromUser = transactionEntity.getFromUser();
-        String toUser = transactionEntity.getToUser();
-        String transactionId = transactionEntity.getTransactionID();
+        String transactionId = transaction.getTransactionID();
+        String fromUser = transaction.getFromUser();
+        String toUser = transaction.getToUser();
 
-        URI url = URI.create("http://localhost:2612/getUser?userName="+fromUser);
+        URI url = URI.create("http://localhost:2612/getUser?username="+fromUser);
         HttpEntity httpEntity = new HttpEntity(new HttpHeaders());
-        JSONObject fromUserObj = restTemplate.exchange(url, HttpMethod.GET,httpEntity,JSONObject.class).getBody();
-        String senderEmail = (String) fromUserObj.get("email");
-        String senderName = (String) fromUserObj.get("name");
 
-        url = URI.create("http://localhost:2612/getUser?userName="+toUser);
-        JSONObject toUserObj = restTemplate.exchange(url, HttpMethod.GET,httpEntity,JSONObject.class).getBody();
-        String recieverEmail = (String) toUserObj.get("email");
-        String recieverName = (String) fromUserObj.get("name");
+        JSONObject fromUserObject = restTemplate.exchange(url, HttpMethod.GET,httpEntity,JSONObject.class).getBody();
 
-        JSONObject senderMailReq = new JSONObject();
-        senderMailReq.put("email",senderEmail);
+        String senderName = (String)fromUserObject.get("name");
+        String senderEmail = (String)fromUserObject.get("email");
 
-        String senderMessageBody = String.format("Hi %s the transaction with transactionID %s has been %s of rs %d",
-                senderName,transactionId,transactionEntity.getTransactionStatus(),transactionEntity.getAmount());
+        url = URI.create("http://localhost:2612/getUser?username="+toUser);
+        JSONObject toUserObject = restTemplate.exchange(url, HttpMethod.GET,httpEntity,JSONObject.class).getBody();
 
-        senderMailReq.put("message",senderMessageBody);
+        String receiverEmail = (String)toUserObject.get("email");
+        String receiverName = (String)toUserObject.get("name");
 
-        String Smsg = senderMailReq.toString();
-        kafkaTemplate.send("send_email",Smsg);
+        // SEND THE EMAIL AND MESSAGE TO NOTIFICATIONS-SERVICE VIA KAFKA
+        JSONObject emailRequest = new JSONObject();
 
-        if(transactionEntity.getTransactionStatus().equals("FAILED")){
-            return;
+        //SENDER should always receive email
+        String senderMessageBody = String.format("Hi %s the transaction with transactionId %s has been %s of Rs %d",
+                senderName,transactionId,transaction.getTransactionStatus(),transaction.getAmount());
+
+        emailRequest.put("email", senderEmail);
+        emailRequest.put("message" , senderMessageBody);
+
+        String message = emailRequest.toString() ;
+
+        kafkaTemplate.send("send_email", message);
+
+        // RECEIVER WILL GET MAIL ONLY WHEN TRANSACTION IS SUCCESSFULL
+        if(transaction.getTransactionStatus().equals("SUCCESS")) {
+
+            String receiverMessageBody = String.format("Hi %s you have received an amount of %d from %s",
+                    receiverName,transaction.getAmount(),senderName);
+
+            emailRequest.put("email", senderEmail);
+            emailRequest.put("message" , senderMessageBody);
+
+            message = emailRequest.toString();
+
+            kafkaTemplate.send("send_email",message);
         }
-
-        JSONObject recieverMailReq = new JSONObject();
-
-        recieverMailReq.put("email",recieverEmail);
-
-
-        String receiverMessageBody = String.format("Hi %s you have recieved %d from %s"
-                ,recieverName,transactionEntity.getAmount(),senderName);
-
-        recieverMailReq.put("message",receiverMessageBody);
-
-        String Rmsg = recieverMailReq.toString();
-        kafkaTemplate.send("send_email",Rmsg);
-
     }
 }

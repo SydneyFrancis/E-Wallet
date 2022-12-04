@@ -24,8 +24,8 @@ public class NotificationConfig {
         mailSender.setHost("smtp.gmail.com");
         mailSender.setPort(587);
 
-        mailSender.setUsername("backendacciojob@gmail.com");
-        mailSender.setPassword("Accio1234.");
+        mailSender.setUsername("sydneyfrancis79@gmail.com");
+        mailSender.setPassword("uiobjxhzzpeltsag");
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");

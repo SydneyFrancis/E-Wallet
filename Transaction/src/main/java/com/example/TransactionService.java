@@ -109,15 +109,15 @@ public class TransactionService {
         String message = emailRequest.toString() ;
 
         kafkaTemplate.send("send_email", message);
+        log.info("transaction status***",transaction.getTransactionStatus());
 
         // RECEIVER WILL GET MAIL ONLY WHEN TRANSACTION IS SUCCESSFULL
-        if(transaction.getTransactionStatus().equals("SUCCESS")) {
-
+        if(transaction.getTransactionStatus().toString().equals("SUCCESS")) {
             String receiverMessageBody = String.format("Hi %s you have received an amount of %d from %s",
                     receiverName,transaction.getAmount(),senderName);
-
-            emailRequest.put("email", senderEmail);
-            emailRequest.put("message" , senderMessageBody);
+            emailRequest = new JSONObject();
+            emailRequest.put("email", receiverEmail);
+            emailRequest.put("message" , receiverMessageBody);
 
             message = emailRequest.toString();
 
